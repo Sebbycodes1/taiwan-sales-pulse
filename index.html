@@ -1,10 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Taiwan Sales Pulse - Shared Snapshot</title>
-    <style>:root {
+    <style>
+:root {
   color-scheme: light;
   --bg: #f5f7f3;
   --surface: #ffffff;
@@ -341,6 +342,11 @@ input[type="search"]:focus {
   background: var(--amber-soft);
 }
 
+.commentary-list li:nth-child(4) {
+  border-left-color: var(--rose);
+  background: var(--rose-soft);
+}
+
 .bar-chart {
   min-height: 220px;
   display: grid;
@@ -466,6 +472,13 @@ td.company-name {
   font-weight: 850;
 }
 
+.empty-cell {
+  padding: 26px 10px;
+  color: var(--muted);
+  text-align: center;
+  white-space: normal;
+}
+
 .positive {
   color: var(--green);
 }
@@ -526,6 +539,16 @@ td.company-name {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-2);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 750;
 }
 
 .compare-item header {
@@ -639,7 +662,8 @@ td.company-name {
     grid-template-columns: 1fr;
   }
 }
-</style>
+
+    </style>
   </head>
   <body>
     <div class="app-shell">
@@ -649,7 +673,7 @@ td.company-name {
           <h1>Taiwan Sales Pulse</h1>
         </div>
         <div class="source-stack">
-          <span id="dataMonthBadge" class="badge">Loading data</span>
+          <span id="dataMonthBadge" class="badge">Loading snapshot</span>
         </div>
       </header>
 
@@ -667,7 +691,7 @@ td.company-name {
               <option value="yoy">YoY growth</option>
               <option value="mom">MoM growth</option>
               <option value="ytdYoy">YTD growth</option>
-              <option value="contribution">YoY contribution</option>
+              <option value="contribution" selected>YoY contribution</option>
             </select>
           </label>
 
@@ -680,7 +704,7 @@ td.company-name {
 
           <label class="field grow">
             <span>Company</span>
-            <input id="searchInput" type="search" placeholder="Search code, alias, or official name" />
+            <input id="searchInput" type="search" placeholder="Search ticker, English alias, or market code" />
           </label>
 
           <label class="toggle">
@@ -695,7 +719,7 @@ td.company-name {
         </section>
 
         <section class="status-row" aria-live="polite">
-          <div id="loadStatus" class="status-message">Loading official exchange feeds...</div>
+          <div id="loadStatus" class="status-message">Loading official exchange data...</div>
         </section>
 
         <section class="kpi-grid" aria-label="Key metrics">
@@ -725,8 +749,8 @@ td.company-name {
           <article class="panel commentary-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Concise commentary</p>
-                <h2>Latest Read</h2>
+                <p class="eyebrow">Signal commentary</p>
+                <h2>Executive Read</h2>
               </div>
             </div>
             <ul id="commentaryList" class="commentary-list">
@@ -747,7 +771,7 @@ td.company-name {
           <article class="panel market-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Revenue vs market weight</p>
+                <p class="eyebrow">Revenue vs equity weight</p>
                 <h2>Concentration Check</h2>
               </div>
               <span id="marketCompareNote" class="panel-note">--</span>
@@ -772,9 +796,9 @@ td.company-name {
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Company screen</p>
-                <h2>Largest Signals</h2>
+                <h2>Largest Revenue Movers</h2>
               </div>
-              <button id="sortDirection" class="icon-button" type="button" title="Reverse sort">S</button>
+              <button id="sortDirection" class="icon-button" type="button" title="Show smallest values first">High</button>
             </div>
             <div class="table-wrap">
               <table>
@@ -787,7 +811,7 @@ td.company-name {
                     <th>Revenue</th>
                     <th>YoY</th>
                     <th>MoM</th>
-                    <th>Contribution</th>
+                    <th>YoY Contribution</th>
                   </tr>
                 </thead>
                 <tbody id="companyTable"></tbody>
@@ -817,6 +841,11 @@ td.company-name {
                 <span>Universe caveat</span>
                 <strong>TWSE + TPEx</strong>
                 <small>Combined revenue view is broader than TAIEX constituents.</small>
+              </div>
+              <div class="benchmark-item">
+                <span>Display caveat</span>
+                <strong>English labels</strong>
+                <small>Verified aliases are used first; unmapped names fall back to market ticker.</small>
               </div>
             </div>
           </article>
@@ -2820,7 +2849,8 @@ td.company-name {
 {"Date":"1150626","TradeVolume":"16709688079","TradeValue":"1672832488417","Transaction":"9858892","TAIEX":"44571.76","Change":"-1683.50"},
 {"Date":"1150629","TradeVolume":"11210546174","TradeValue":"1045439448015","Transaction":"4895013","TAIEX":"44999.90","Change":"428.14"}]
 };</script>
-<script>const ENDPOINTS = {
+    <script>
+const ENDPOINTS = {
   twse: {
     local: "./api/twse",
     direct: "https://openapi.twse.com.tw/v1/opendata/t187ap05_L",
@@ -2839,42 +2869,42 @@ td.company-name {
 };
 
 const SECTOR_LABELS = {
-  "å…‰é›»æ¥­": "Optoelectronics",
-  "å…¶ä»–": "Other",
-  "å…¶ä»–é›»å­æ¥­": "Other Electronics",
-  "åŒ–å­¸å·¥æ¥­": "Chemicals",
-  "åŠå°Žé«”æ¥­": "Semiconductors",
-  "å¡‘è† å·¥æ¥­": "Plastics",
-  "å­˜è¨—æ†‘è­‰": "Depositary Receipts",
-  "å±…å®¶ç”Ÿæ´»": "Home & Living",
-  "å»ºæç‡Ÿé€ ": "Building Materials & Construction",
-  "æ•¸ä½é›²ç«¯": "Digital & Cloud",
-  "æ–‡åŒ–å‰µæ„æ¥­": "Cultural & Creative",
-  "æ©¡è† å·¥æ¥­": "Rubber",
-  "æ°´æ³¥å·¥æ¥­": "Cement",
-  "æ±½è»Šå·¥æ¥­": "Automobiles",
-  "æ²¹é›»ç‡ƒæ°£æ¥­": "Oil, Electricity & Gas",
-  "çŽ»ç’ƒé™¶ç“·": "Glass & Ceramics",
-  "ç”ŸæŠ€é†«ç™‚æ¥­": "Biotech & Medical Care",
-  "ç´¡ç¹”çº–ç¶­": "Textiles",
-  "ç¶ èƒ½ç’°ä¿": "Green Energy & Environmental Services",
-  "èˆªé‹æ¥­": "Shipping & Transportation",
-  "è§€å…‰é¤æ—…": "Tourism & Hospitality",
-  "è²¿æ˜“ç™¾è²¨": "Trading & Retail",
-  "è³‡è¨Šæœå‹™æ¥­": "Information Services",
-  "è¾²æ¥­ç§‘æŠ€": "Agricultural Technology",
-  "é€šä¿¡ç¶²è·¯æ¥­": "Communications & Networking",
-  "é€ ç´™å·¥æ¥­": "Paper & Pulp",
-  "é‹å‹•ä¼‘é–’": "Sports & Leisure",
-  "é‡‘èžä¿éšªæ¥­": "Financials & Insurance",
-  "é‡‘èžæ¥­": "Financials",
-  "é‹¼éµå·¥æ¥­": "Steel",
-  "é›»å™¨é›»çºœ": "Electrical & Cable",
-  "é›»å­é€šè·¯æ¥­": "Electronics Distribution",
-  "é›»å­é›¶çµ„ä»¶æ¥­": "Electronic Components",
-  "é›»æ©Ÿæ©Ÿæ¢°": "Electrical Machinery",
-  "é›»è…¦åŠé€±é‚Šè¨­å‚™æ¥­": "Computers & Peripherals",
-  "é£Ÿå“å·¥æ¥­": "Food",
+  "光電業": "Optoelectronics",
+  "其他": "Other",
+  "其他電子業": "Other Electronics",
+  "化學工業": "Chemicals",
+  "半導體業": "Semiconductors",
+  "塑膠工業": "Plastics",
+  "存託憑證": "Depositary Receipts",
+  "居家生活": "Home & Living",
+  "建材營造": "Building Materials & Construction",
+  "數位雲端": "Digital & Cloud",
+  "文化創意業": "Cultural & Creative",
+  "橡膠工業": "Rubber",
+  "水泥工業": "Cement",
+  "汽車工業": "Automobiles",
+  "油電燃氣業": "Oil, Electricity & Gas",
+  "玻璃陶瓷": "Glass & Ceramics",
+  "生技醫療業": "Biotech & Medical Care",
+  "紡織纖維": "Textiles",
+  "綠能環保": "Green Energy & Environmental Services",
+  "航運業": "Shipping & Transportation",
+  "觀光餐旅": "Tourism & Hospitality",
+  "貿易百貨": "Trading & Retail",
+  "資訊服務業": "Information Services",
+  "農業科技": "Agricultural Technology",
+  "通信網路業": "Communications & Networking",
+  "造紙工業": "Paper & Pulp",
+  "運動休閒": "Sports & Leisure",
+  "金融保險業": "Financials & Insurance",
+  "金融業": "Financials",
+  "鋼鐵工業": "Steel",
+  "電器電纜": "Electrical & Cable",
+  "電子通路業": "Electronics Distribution",
+  "電子零組件業": "Electronic Components",
+  "電機機械": "Electrical Machinery",
+  "電腦及週邊設備業": "Computers & Peripherals",
+  "食品工業": "Food",
 };
 
 const COMPANY_ALIASES = {
@@ -2929,30 +2959,86 @@ const COMPANY_ALIASES = {
   "2905": "Mercuries & Associates",
   "2912": "President Chain Store",
   "3017": "Asia Vital Components",
+  "1101": "Taiwan Cement",
+  "1102": "Asia Cement",
+  "1210": "Great Wall Enterprise",
+  "1504": "TECO Electric & Machinery",
+  "1785": "Solar Applied Materials Technology",
+  "1907": "YFY",
+  "2023": "Yieh Phui Enterprise",
+  "2027": "Ta Chen Stainless Pipe",
+  "2105": "Cheng Shin Rubber",
+  "2201": "Yulon Motor",
+  "2206": "Sanyang Motor",
+  "2312": "Kinpo Electronics",
+  "2313": "Compeq Manufacturing",
+  "2354": "Foxconn Technology",
+  "2360": "Chroma ATE",
+  "2379": "Realtek Semiconductor",
+  "2385": "Chicony Electronics",
+  "2392": "Cheng Uei Precision Industry",
+  "2395": "Advantech",
+  "2633": "Taiwan High Speed Rail",
+  "2646": "STARLUX Airlines",
+  "2880": "Hua Nan Financial",
+  "2884": "E.SUN Financial",
+  "2886": "Mega Financial",
+  "2892": "First Financial",
+  "3008": "Largan Precision",
+  "3010": "Wah Lee Industrial",
+  "3028": "Zenitron",
+  "3033": "Weikeng Industrial",
   "3036": "WT Microelectronics",
   "3037": "Unimicron",
+  "3034": "Novatek Microelectronics",
+  "3044": "Tripod Technology",
   "3045": "Taiwan Mobile",
   "3048": "Edom Technology",
   "3231": "Wistron",
+  "3209": "Alltek Technology",
+  "3443": "Global Unichip",
   "3260": "ADATA Technology",
   "3481": "Innolux",
+  "3596": "Arcadyan Technology",
+  "3665": "BizLink Holding",
+  "3673": "TPK Holding",
   "3702": "WPG Holdings",
   "3706": "MiTAC Holdings",
   "3711": "ASE Technology Holding",
   "4938": "Pegatron",
+  "4904": "Far EasTone Telecommunications",
+  "4915": "Primax Electronics",
   "4958": "Zhen Ding Technology",
   "5289": "Innodisk",
+  "5388": "Sercomm",
+  "5434": "Topco Scientific",
+  "5483": "Sino-American Silicon Products",
+  "5871": "Chailease Holding",
+  "5880": "Taiwan Cooperative Financial",
+  "5903": "Taiwan FamilyMart",
+  "6121": "Simplo Technology",
   "6139": "L&K Engineering",
+  "6196": "Marketech International",
+  "6239": "Powertech Technology",
+  "6274": "Taiwan Union Technology",
+  "6285": "Wistron NeWeb",
   "6414": "Ennoconn",
+  "6488": "GlobalWafers",
   "6505": "Formosa Petrochemical",
   "6669": "Wiwynn",
+  "6770": "Powerchip Semiconductor Manufacturing",
   "8112": "Supreme Electronics",
+  "8454": "momo.com",
   "8299": "Phison Electronics",
   "8926": "Taiwan Cogeneration",
+  "9910": "Feng Tay Enterprise",
+  "9921": "Giant Manufacturing",
+  "9933": "CTCI",
+  "9945": "Ruentex Development",
   "9904": "Pou Chen",
 };
 
-const FINANCIAL_SECTORS = new Set(["é‡‘èžä¿éšªæ¥­", "é‡‘èžæ¥­"]);
+const FINANCIAL_SECTORS = new Set(["金融保險業", "金融業"]);
 
 const MARKET_WEIGHT_REFERENCES = {
   tsmc: {
@@ -2995,7 +3081,7 @@ const state = {
   rows: [],
   taiex: [],
   market: "all",
-  metric: "yoy",
+  metric: "contribution",
   sector: "all",
   search: "",
   exTsmc: false,
@@ -3012,16 +3098,20 @@ function toNumber(value) {
 function formatMoney(value) {
   const sign = value < 0 ? "-" : "";
   const abs = Math.abs(value) * 1000;
-  if (abs >= 1_000_000_000_000) return `${sign}NT${(abs / 1_000_000_000_000).toFixed(2)}T`;
-  if (abs >= 1_000_000_000) return `${sign}NT${(abs / 1_000_000_000).toFixed(2)}B`;
-  if (abs >= 1_000_000) return `${sign}NT${(abs / 1_000_000).toFixed(2)}M`;
-  return `${sign}NT${abs.toFixed(0)}K`;
+  if (abs >= 1_000_000_000_000) return `${sign}NT$${(abs / 1_000_000_000_000).toFixed(2)}T`;
+  if (abs >= 1_000_000_000) return `${sign}NT$${(abs / 1_000_000_000).toFixed(2)}B`;
+  if (abs >= 1_000_000) return `${sign}NT$${(abs / 1_000_000).toFixed(2)}M`;
+  return `${sign}NT$${abs.toFixed(0)}K`;
 }
 
 function formatPct(value) {
   if (!Number.isFinite(value)) return "--";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(1)}%`;
+}
+
+function formatMaybePct(value) {
+  return Number.isFinite(value) ? formatPct(value) : "n/a";
 }
 
 function formatNumber(value) {
@@ -3076,7 +3166,10 @@ function normalizeRevenueRow(row, market) {
 }
 
 function displaySector(sector) {
-  return SECTOR_LABELS[sector] || sector || "Unclassified";
+  const label = SECTOR_LABELS[sector];
+  if (label) return label;
+  if (hasCjkText(sector)) return "Other / Unmapped";
+  return sector || "Unclassified";
 }
 
 function hasCjkText(value) {
@@ -3085,8 +3178,13 @@ function hasCjkText(value) {
 
 function displayCompany(row) {
   if (COMPANY_ALIASES[row.code]) return COMPANY_ALIASES[row.code];
-  if (row.name && !hasCjkText(row.name)) return row.name;
+  const officialName = englishOfficialName(row);
+  if (officialName) return officialName;
   return `${row.market.toUpperCase()} ${row.code}`;
+}
+
+function englishOfficialName(row) {
+  return row.name && !hasCjkText(row.name) ? row.name : "";
 }
 
 function searchHaystack(row) {
@@ -3097,8 +3195,7 @@ function searchHaystack(row) {
     `${market}${row.code}`,
     `${row.code} ${market}`,
     displayCompany(row),
-    row.name,
-    row.industry,
+    englishOfficialName(row),
     displaySector(row.industry),
   ]
     .join(" ")
@@ -3110,12 +3207,30 @@ function isFinancial(row) {
 }
 
 async function fetchJson(source) {
-  const embedded = window.__TAIWAN_SALES_DATA__ || {};
-  if (source.label === "TWSE") return embedded.twse;
-  if (source.label === "TPEx") return embedded.tpex;
-  if (source.label === "TAIEX") return embedded.taiex;
-  throw new Error(`${source.label} unavailable in shared snapshot`);
+  const embedded = window.__TAIWAN_SALES_DATA__;
+  if (embedded) {
+    if (source.label === "TWSE") return embedded.twse;
+    if (source.label === "TPEx") return embedded.tpex;
+    if (source.label === "TAIEX") return embedded.taiex;
+    throw new Error(`${source.label} unavailable in shared snapshot`);
+  }
+
+  const urls = [source.local, source.direct];
+  let lastError = null;
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw new Error(`${source.label} unavailable: ${lastError?.message ?? "unknown error"}`);
 }
+
 function summarize(rows) {
   const total = rows.reduce((sum, row) => sum + row.revenue, 0);
   const prev = rows.reduce((sum, row) => sum + row.prevRevenue, 0);
@@ -3286,6 +3401,11 @@ function renderSectors(sectors) {
   els.sectorSummary.textContent =
     strongest && weakest ? `${displaySector(strongest.name)} strongest, ${displaySector(weakest.name)} weakest` : "--";
 
+  if (!sorted.length) {
+    els.sectorHeatmap.innerHTML = '<div class="empty-state">No sectors match the current filters.</div>';
+    return;
+  }
+
   els.sectorHeatmap.innerHTML = sorted
     .map(
       (sector) => `
@@ -3320,18 +3440,30 @@ function renderMarketComparison(rows) {
     .slice(0, 5)
     .reduce((sum, row) => sum + row.revenue, 0);
 
-  const tsmcRevenueShare = tsmc && summary.total ? (tsmc.revenue / summary.total) * 100 : 0;
+  const tsmcRevenueShare = tsmc && summary.total ? (tsmc.revenue / summary.total) * 100 : null;
   const honHaiRevenueShare = honHai && summary.total ? (honHai.revenue / summary.total) * 100 : 0;
   const topFiveShare = summary.total ? (topFiveRevenue / summary.total) * 100 : 0;
-  const maxScale = Math.max(60, tsmcReference.marketWeight, tsmcRevenueShare, honHaiRevenueShare, topFiveShare);
+  const maxScale = Math.max(
+    60,
+    tsmcReference.marketWeight,
+    ...[tsmcRevenueShare, honHaiRevenueShare, topFiveShare].filter(Number.isFinite),
+  );
+
+  if (!rows.length) {
+    els.marketCompareNote.textContent = "No matching companies";
+    els.marketCompareRows.innerHTML = '<div class="empty-state">No concentration view for the current filters.</div>';
+    return;
+  }
 
   els.marketCompareNote.textContent = tsmc
-    ? `TSMC sales share ${formatPct(tsmcRevenueShare)} vs ${tsmcReference.benchmark} weight ${formatPct(tsmcReference.marketWeight)}`
-    : "TSMC not in selected universe";
+    ? `TSMC revenue share ${formatPct(tsmcRevenueShare)} vs ${tsmcReference.benchmark} weight ${formatPct(tsmcReference.marketWeight)}`
+    : state.exTsmc
+      ? "TSMC excluded by filter"
+      : "TSMC outside this filtered view";
 
   const items = [
     {
-      title: "TSMC",
+      title: tsmc ? "TSMC" : "TSMC",
       subtitle: `${tsmcReference.benchmark} market-cap weight, ${tsmcReference.asOf}`,
       revenueLabel: "Revenue",
       revenueValue: tsmcRevenueShare,
@@ -3358,20 +3490,20 @@ function renderMarketComparison(rows) {
 
   els.marketCompareRows.innerHTML = items
     .map((item) => {
-      const revenueWidth = Math.max(2, (item.revenueValue / maxScale) * 100);
+      const revenueWidth = Number.isFinite(item.revenueValue) ? Math.max(2, (item.revenueValue / maxScale) * 100) : 0;
       const marketWidth = item.marketValue == null ? 0 : Math.max(2, (item.marketValue / maxScale) * 100);
       return `
         <div class="compare-item">
           <header>
             <strong>${escapeHtml(item.title)}</strong>
-            <small>${formatPct(item.revenueValue)}</small>
+            <small>${formatMaybePct(item.revenueValue)}</small>
           </header>
           <small>${escapeHtml(item.subtitle)}</small>
           <div class="compare-bars">
             <div class="compare-bar-row">
               <span>${item.revenueLabel}</span>
               <div class="compare-track"><div class="compare-fill" style="width:${revenueWidth}%"></div></div>
-              <b>${formatPct(item.revenueValue)}</b>
+              <b>${formatMaybePct(item.revenueValue)}</b>
             </div>
             <div class="compare-bar-row">
               <span>${item.marketLabel}</span>
@@ -3390,6 +3522,17 @@ function renderMarketComparison(rows) {
 }
 
 function renderCommentary(rows, sectors) {
+  if (!rows.length) {
+    els.commentaryList.innerHTML = [
+      "No companies match the current filters.",
+      "Clear the search box or broaden the market, sector, or exclusion filters.",
+      "The embedded official snapshot is still available for the full universe.",
+    ]
+      .map((note) => `<li>${escapeHtml(note)}</li>`)
+      .join("");
+    return;
+  }
+
   const summary = summarize(rows);
   const strongest = [...sectors].sort((a, b) => b.yoy - a.yoy)[0];
   const weakest = [...sectors].sort((a, b) => a.yoy - b.yoy)[0];
@@ -3398,6 +3541,9 @@ function renderCommentary(rows, sectors) {
   const drag = contributors[contributors.length - 1];
   const nonFinancialRows = rows.filter((row) => !isFinancial(row));
   const nonFinancialSummary = summarize(nonFinancialRows);
+  const tsmcReference = MARKET_WEIGHT_REFERENCES.tsmc;
+  const tsmc = rows.find((row) => row.code === tsmcReference.code);
+  const tsmcRevenueShare = tsmc && summary.total ? (tsmc.revenue / summary.total) * 100 : null;
   const month = rows[0] ? formatRocMonth(rows[0].dataMonthRaw) : "latest month";
 
   const notes = [
@@ -3410,6 +3556,9 @@ function renderCommentary(rows, sectors) {
     top && drag
       ? `Top contributor: ${displayCompany(top)}; largest drag: ${displayCompany(drag)}.`
       : "Company contribution signal unavailable.",
+    Number.isFinite(tsmcRevenueShare)
+      ? `TSMC is ${formatPct(tsmcRevenueShare)} of this revenue pool vs ${formatPct(tsmcReference.marketWeight)} of ${tsmcReference.benchmark}; revenue concentration is much lower than equity-index concentration.`
+      : "TSMC is outside this filtered view, so the concentration check is contextual only.",
   ];
 
   els.commentaryList.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
@@ -3423,13 +3572,18 @@ function renderTable(rows) {
     })
     .slice(0, 40);
 
+  if (!sorted.length) {
+    els.companyTable.innerHTML = '<tr><td class="empty-cell" colspan="8">No companies match the current filters.</td></tr>';
+    return;
+  }
+
   els.companyTable.innerHTML = sorted
     .map((row) => {
       const contribution = row.revenue - row.lastYearRevenue;
       return `
         <tr>
           <td>${escapeHtml(row.code)}</td>
-          <td class="company-name" title="${escapeAttr(row.name)}">${escapeHtml(displayCompany(row))}</td>
+          <td class="company-name" title="${escapeAttr(displayCompany(row))}">${escapeHtml(displayCompany(row))}</td>
           <td><span class="market-pill">${row.market.toUpperCase()}</span></td>
           <td>${escapeHtml(displaySector(row.industry))}</td>
           <td>${formatMoney(row.revenue)}</td>
@@ -3464,6 +3618,7 @@ function render() {
   renderCommentary(rows, sectors);
   renderTable(rows);
   els.sortDirection.textContent = state.descending ? "High" : "Low";
+  els.sortDirection.title = state.descending ? "Show smallest values first" : "Show largest values first";
 }
 
 function bindEvents() {
@@ -3539,19 +3694,26 @@ async function init() {
     const months = [...new Set(state.rows.map((row) => row.dataMonthRaw))].sort();
     const loadedMarkets = [twse.length ? "TWSE" : null, tpex.length ? "TPEx" : null].filter(Boolean);
     const monthText = formatRocMonth(months[months.length - 1]);
+    const latestReportDate = formatRocDate(reportDates[reportDates.length - 1]);
+    const taiexDates = taiex.map((row) => row.Date).filter(Boolean).sort();
+    const latestTaiexDate = taiexDates.length ? formatRocDate(taiexDates[taiexDates.length - 1]) : "unavailable";
+    const isSnapshot = Boolean(window.__TAIWAN_SALES_DATA__);
     els.dataMonthBadge.textContent =
       unavailable.length && (unavailable.includes("TWSE") || unavailable.includes("TPEx"))
         ? `Partial through ${monthText}`
-        : `Complete through ${monthText}`;
+        : `${isSnapshot ? "Snapshot" : "Complete"} through ${monthText}`;
     els.loadStatus.textContent = unavailable.length
-      ? `Loaded ${formatNumber(state.rows.length)} companies from ${loadedMarkets.join(" + ")}; unavailable: ${unavailable.join(", ")}. Latest report date ${formatRocDate(reportDates[reportDates.length - 1])}.`
-      : `Loaded ${formatNumber(state.rows.length)} companies from official feeds; latest report date ${formatRocDate(reportDates[reportDates.length - 1])}.`;
+      ? `Loaded ${formatNumber(state.rows.length)} companies from ${loadedMarkets.join(" + ")}; unavailable: ${unavailable.join(", ")}. Revenue release ${latestReportDate}; TAIEX through ${latestTaiexDate}. Values in NT$.`
+      : `${isSnapshot ? "Embedded snapshot" : "Official feeds"}: ${formatNumber(state.rows.length)} companies from TWSE + TPEx monthly revenue. Revenue release ${latestReportDate}; TAIEX through ${latestTaiexDate}. Values in NT$.`;
     els.loadStatus.classList.remove("error", "warning");
     if (unavailable.length) els.loadStatus.classList.add("warning");
     render();
   } catch (error) {
+    const isSnapshot = Boolean(window.__TAIWAN_SALES_DATA__);
     els.dataMonthBadge.textContent = "Data unavailable";
-    els.loadStatus.textContent = `${error.message}. Embedded snapshot data could not be read.`;
+    els.loadStatus.textContent = `${error.message}. ${
+      isSnapshot ? "Embedded snapshot data could not be read." : "Live exchange data could not be reached."
+    }`;
     els.loadStatus.classList.add("error");
   }
 }
@@ -3570,7 +3732,8 @@ function escapeAttr(value) {
 }
 
 init();
-</script>
+
+    </script>
   </body>
 </html>
 
